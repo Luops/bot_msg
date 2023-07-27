@@ -1,4 +1,5 @@
 from telethon import TelegramClient, sync, events
+from telethon.tl.types import MessageMediaPhoto
 from time import sleep
 import requests
 from senhas import api_hash, api_id
@@ -19,7 +20,14 @@ def main():
     client = TelegramClient(sessao, api_id, api_hash)
     client.on(events.NewMessage(chats = [868907524])) #Grupo que quer copiar
     async def enviar_mensagem(event):
-        await client.send_message(919563201, event.raw_text) #Grupo que quer colar
+        if event.message.text:
+            await client.send_message(919563201, event.message.text) # Grupo que quer colar
+        elif event.message.media:
+            # Verifica se a mensagem é uma imagem
+            if isinstance(event.message.media, MessageMediaPhoto):
+                # Obtém o caminho da imagem e o envia
+                file_path = await event.download_media()
+                await client.send_file(919563201, file=file_path)
     client.start()
     client.run_until_disconnected()
     return jsonify({'status': 'Mensagens estão sendo monitoradas e repassadas.'})
